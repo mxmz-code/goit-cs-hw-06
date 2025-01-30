@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  app:
+    build: ./web_application
+    ports:
+      - '3000:3000'
+      - '6000:6000'
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    volumes:
+      - .:/web_application
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+
+  mongodb:
+    image: mongo:5.0
+    ports:
+      - '27017:27017'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    volumes:
+      - ./mongo_data:/data/db
+    restart: unless-stopped
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongo localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mongo_data:
